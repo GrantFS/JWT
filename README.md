@@ -11,6 +11,8 @@ Small application to demonstrate JWT
 
 ```
 
+> Remember to create an .env file with tokens (See below to create a token)
+
 ## Usage
 
 ```bash
