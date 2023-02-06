@@ -1,0 +1,93 @@
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-dynamodb-local
+
+service: jwt-provider
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: eu-west-1
+  stage: main
+  environment:
+    ENVIRONMENT: ${env:ENVIRONMENT, "offline"}
+    DYNAMODB_TABLE: ${self:service}-table
+  deploymentBucket:
+    name: "test-lambdas"
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  login:
+    description: "JWT"
+    handler: src/jwt/index.login
+    timeout: 15
+    events:
+      - http:
+          path: /jwt/login
+          method: POST
+  refreshToken:
+    description: "Refresh the JWT"
+    handler: src/jwt/index.refreshToken
+    timeout: 15
+    events:
+      - http:
+          path: /jwt/token
+          method: POST
+  logout:
+    description: "Logout"
+    handler: src/jwt/index.logout
+    timeout: 15
+    events:
+      - http:
+          path: /jwt/logout
+          method: POST
+
+
+resources:
+  Resources:
+    Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: TOKEN
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: tokenGSI
+            KeySchema:
+              - AttributeName: PK
+                KeyType: HASH
+              - AttributeName: TOKEN
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+custom:
+  dynamodb:
+    stages:
+      - offline
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      convertEmptyValues: true

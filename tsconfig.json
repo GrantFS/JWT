@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "es2020",
+            "DOM"
+        ],
+        "strict": true,
+        "allowJs": true,
+        "skipLibCheck": true,
+        "noImplicitAny": true,
+        "removeComments": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "target": "esnext",
+        "outDir": "lib",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+    },
+    "include": [
+        "./**/*.ts"
+    ]
+}
